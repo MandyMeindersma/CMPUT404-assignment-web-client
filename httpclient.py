@@ -53,7 +53,6 @@ class HTTPClient(object):
         return data.split("\r\n\r\n")[1]
 
     def sendall(self, data):
-        print(data)
         self.socket.sendall(data.encode('utf-8'))
 
     def close(self):
@@ -79,10 +78,12 @@ class HTTPClient(object):
         code = self.get_code(self.data)
         headers = self.get_headers(self.data)
         body = self.get_body(self.data)
+        print(self.data)
+        self.close()
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
-        self.data = self.connect(url, self.PORT)
+        self.connect(url, self.PORT)
         code = self.get_code(self.data)
         body = self.get_body(self.data)
         return HTTPResponse(code, body)
@@ -91,6 +92,9 @@ class HTTPClient(object):
         url_object = urllib.parse.urlparse(url)
         self.PORT = url_object.port
         self.path = url_object.path
+        if self.path == "":
+            self.path = "/"
+        print(self.path)
         if self.PORT == None:
             self.PORT = 80
         if (command == "POST"):
