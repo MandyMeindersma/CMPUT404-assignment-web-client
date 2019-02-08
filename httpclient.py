@@ -43,7 +43,7 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        return data.split()[1]
+        return int(data.split()[1])
 
     def get_headers(self,data):
         data = data.split("\r\n\r\n")[0]
@@ -71,36 +71,57 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        self.connect(url, self.PORT)
-        payload = """GET {PATH} HTTP/1.0\n\rHost: {HOST}\r\n\r\n""".format(PATH=self.path, HOST=url)
+        url_object = urllib.parse.urlparse(url)
+        self.PORT = url_object.port
+        self.path = url_object.path
+        host = url_object.hostname
+        if self.path == "":
+            self.path = "/"
+        if self.PORT == None:
+            self.PORT = 80
+        payload = """GET {PATH} HTTP/1.1\r\nHost: {HOST}\r\nConnection: close\r\n\r\n""".format(PATH=self.path, HOST=host)
+        self.connect(host, self.PORT)
         self.sendall(payload)
         self.data = self.recvall(self.socket)
         code = self.get_code(self.data)
-        headers = self.get_headers(self.data)
         body = self.get_body(self.data)
-        print(self.data)
+        print(body)
         self.close()
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
-        self.connect(url, self.PORT)
-        code = self.get_code(self.data)
-        body = self.get_body(self.data)
-        return HTTPResponse(code, body)
-
-    def command(self, url, command="GET", args=None):
         url_object = urllib.parse.urlparse(url)
         self.PORT = url_object.port
         self.path = url_object.path
+        host = url_object.hostname
         if self.path == "":
             self.path = "/"
-        print(self.path)
         if self.PORT == None:
             self.PORT = 80
-        if (command == "POST"):
-            return self.POST(url_object.netloc.split(":")[0], args )
+        if args != None:
+            body = urllib.parse.urlencode(args)
+            content_length = len(body)
         else:
-            return self.GET(url_object.netloc.split(":")[0], args )
+            body = ""
+            content_length = 0
+        payload1 = """POST {PATH} HTTP/1.1\r\nHost: {HOST}\r\nConnection: close\r\n""".format(PATH=self.path, HOST=host)
+        payload2 = """Content-length: {LENGTH}\r\n\r\n""".format(LENGTH=content_length)
+        payload3 = """{BODY}""".format(BODY=body)
+        payload = payload1 + payload2 + payload3
+        self.connect(host, self.PORT)
+        self.sendall(payload)
+        self.data = self.recvall(self.socket)
+        code = self.get_code(self.data)
+        body = self.get_body(self.data)
+        print(body)
+        self.close()
+        return HTTPResponse(code, body)
+
+    def command(self, url, command="GET", args=None):
+        if (command == "POST"):
+            return self.POST(url, args )
+        else:
+            return self.GET(url, args )
 
 if __name__ == "__main__":
     client = HTTPClient()
