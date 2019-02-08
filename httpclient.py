@@ -39,12 +39,10 @@ class HTTPClient(object):
         self.PORT = 80
 
     def connect(self, host, port):
-        print("host", host, "port", port)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
         self.data = self.recvall(self.socket)
-        print("host", host, "port", port)
-        return None
+        return self.data
 
     def get_code(self, data):
         return None
@@ -86,10 +84,12 @@ class HTTPClient(object):
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
+        url_object = urllib.parse.urlparse(url)
+        self.PORT = url_object.port
         if (command == "POST"):
-            return self.POST( url, args )
+            return self.POST(url_object.netloc, args )
         else:
-            return self.GET( url, args )
+            return self.GET(url_object.netloc, args )
 
 if __name__ == "__main__":
     client = HTTPClient()
