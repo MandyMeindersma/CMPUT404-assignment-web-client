@@ -33,7 +33,6 @@ class HTTPResponse(object):
         self.body = body
 
 class HTTPClient(object):
-    #def get_host_port(self,url):
 
     def __init__(self):
         self.PORT = 80
@@ -41,8 +40,7 @@ class HTTPClient(object):
     def connect(self, host, port):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
-        self.data = self.recvall(self.socket)
-        return self.data
+        return None
 
     def get_code(self, data):
         return None
@@ -72,7 +70,11 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        self.data = self.connect(url, self.PORT)
+        self.connect(url, self.PORT)
+        payload = """GET {PATH} HTTP/1.0\n\rHost: {HOST}\r\n\r\n""".format(HOST=url, PATH=self.path)
+        self.sendall(payload)
+        self.data = self.recvall(self.socket)
+        print(self.data)
         code = self.get_code(self.data)
         body = self.get_body(self.data)
         return HTTPResponse(code, body)
@@ -85,13 +87,15 @@ class HTTPClient(object):
 
     def command(self, url, command="GET", args=None):
         url_object = urllib.parse.urlparse(url)
+        print(url_object.geturl())
         self.PORT = url_object.port
+        self.path = url_object.path
         if self.PORT == None:
             self.PORT = 80
         if (command == "POST"):
-            return self.POST(url_object.netloc, args )
+            return self.POST(url_object.netloc.split(":")[0], args )
         else:
-            return self.GET(url_object.netloc, args )
+            return self.GET(url_object.netloc.split(":")[0], args )
 
 if __name__ == "__main__":
     client = HTTPClient()
