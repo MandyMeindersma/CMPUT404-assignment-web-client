@@ -86,6 +86,8 @@ class HTTPClient(object):
     def command(self, url, command="GET", args=None):
         url_object = urllib.parse.urlparse(url)
         self.PORT = url_object.port
+        if self.PORT == None:
+            self.PORT = 80
         if (command == "POST"):
             return self.POST(url_object.netloc, args )
         else:

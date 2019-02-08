@@ -2,7 +2,7 @@ CMPUT404-assignment-web-client
 ==============================
 
 
-I used Gary Dhillon as a contributor
+I used Gary Dhillon and Jasmine Woo as a contributor
 
 
 
