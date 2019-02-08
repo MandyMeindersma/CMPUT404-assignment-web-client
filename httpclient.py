@@ -53,6 +53,7 @@ class HTTPClient(object):
         return data.split("\r\n\r\n")[1]
 
     def sendall(self, data):
+        print(data)
         self.socket.sendall(data.encode('utf-8'))
 
     def close(self):
@@ -72,7 +73,7 @@ class HTTPClient(object):
 
     def GET(self, url, args=None):
         self.connect(url, self.PORT)
-        payload = """GET {PATH} HTTP/1.0\n\rHost: {HOST}\r\n\r\n""".format(HOST=url, PATH=self.path)
+        payload = """GET {PATH} HTTP/1.0\n\rHost: {HOST}\r\n\r\n""".format(PATH=self.path, HOST=url)
         self.sendall(payload)
         self.data = self.recvall(self.socket)
         code = self.get_code(self.data)
