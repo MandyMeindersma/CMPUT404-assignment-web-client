@@ -43,13 +43,14 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        return None
+        return data.split()[1]
 
     def get_headers(self,data):
-        return None
+        data = data.split("\r\n\r\n")[0]
+        return data.split("\n")[1:-1]
 
     def get_body(self, data):
-        return None
+        return data.split("\r\n\r\n")[1]
 
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -74,8 +75,8 @@ class HTTPClient(object):
         payload = """GET {PATH} HTTP/1.0\n\rHost: {HOST}\r\n\r\n""".format(HOST=url, PATH=self.path)
         self.sendall(payload)
         self.data = self.recvall(self.socket)
-        print(self.data)
         code = self.get_code(self.data)
+        headers = self.get_headers(self.data)
         body = self.get_body(self.data)
         return HTTPResponse(code, body)
 
@@ -87,7 +88,6 @@ class HTTPClient(object):
 
     def command(self, url, command="GET", args=None):
         url_object = urllib.parse.urlparse(url)
-        print(url_object.geturl())
         self.PORT = url_object.port
         self.path = url_object.path
         if self.PORT == None:
